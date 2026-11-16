@@ -1,0 +1,15 @@
+# secrets and local data: never commit
+.env
+*.db
+backend/uploads/public/*
+backend/uploads/private/*
+!backend/uploads/.gitkeep
+# build and tooling
+node_modules/
+dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.venv/
+.idea/
