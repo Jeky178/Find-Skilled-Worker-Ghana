@@ -1,0 +1,68 @@
+# Production stack: PostgreSQL + API + website with automatic HTTPS.
+#   1) copy .env.production.example to .env and fill it in
+#   2) docker compose up -d --build
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: find_skilled_worker
+      POSTGRES_USER: skilled_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skilled_user -d find_skilled_worker"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+psycopg2://skilled_user:${DB_PASSWORD}@db:5432/find_skilled_worker
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env}
+      CORS_ORIGINS: https://${DOMAIN:?set DOMAIN in .env}
+      FRONTEND_URL: https://${DOMAIN}
+      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
+      PREMIUM_PRICE_MONTHLY_GHS: ${PREMIUM_PRICE_MONTHLY_GHS:-50}
+      PREMIUM_PRICE_YEARLY_GHS: ${PREMIUM_PRICE_YEARLY_GHS:-500}
+      VERIFICATION_FEE_GHS: ${VERIFICATION_FEE_GHS:-0}
+      SPONSORED_PRICE_7D_GHS: ${SPONSORED_PRICE_7D_GHS:-40}
+      SPONSORED_PRICE_30D_GHS: ${SPONSORED_PRICE_30D_GHS:-120}
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads:/app/uploads          # profile photos AND private ID documents: back this up
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/ready')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        VITE_CONTACT_EMAIL: ${CONTACT_EMAIL:-}
+        VITE_CONTACT_PHONE: ${CONTACT_PHONE:-}
+        VITE_CONTACT_WHATSAPP: ${CONTACT_WHATSAPP:-}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      DOMAIN: ${DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data              # HTTPS certificates
+
+volumes:
+  pgdata:
+  uploads:
+  caddy_data:
