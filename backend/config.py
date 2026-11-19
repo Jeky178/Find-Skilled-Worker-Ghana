@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     CORS_ORIGINS: str = "http://localhost:5173"
     UPLOAD_DIR: str = "uploads"
+    CLOUDINARY_CLOUD_NAME: str = ""
+    CLOUDINARY_API_KEY: str = ""
+    CLOUDINARY_API_SECRET: str = ""
     MAX_UPLOAD_MB: int = 5
     PAYSTACK_SECRET_KEY: str = ""
     PAYSTACK_BASE_URL: str = "https://api.paystack.co"
