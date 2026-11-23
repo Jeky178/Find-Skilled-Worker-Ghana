@@ -20,7 +20,7 @@ def _strip(v: str | None) -> str | None:
 class AdminUserOut(BaseModel):
     id: int
     full_name: str
-    email: EmailStr
+    email: str
     phone: str | None
     role: UserRole
     is_active: bool
