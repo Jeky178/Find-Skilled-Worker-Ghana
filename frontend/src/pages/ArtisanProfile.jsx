@@ -4,7 +4,7 @@ import { CheckCircle2, ImagePlus, Trash2, Upload } from "lucide-react";
 import api, { getErrorMessage, mediaUrl } from "../services/api";
 import useCategories from "../hooks/useCategories";
 import Avatar from "../components/Avatar";
-import { LOCATIONS } from "../constants";
+import { LOCATIONS, REGION_LOCATIONS } from "../constants";
 
 const toForm = (p) => ({
   category_id: String(p.category_id), headline: p.headline || "", bio: p.bio || "",
@@ -214,13 +214,31 @@ export default function ArtisanProfile() {
 
         <div className={`${section} space-y-4`}>
           <h2 className="text-xl font-bold">Where you work</h2>
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Service areas">
-            {allAreas.map((a) => (
-              <button type="button" key={a} onClick={() => toggleArea(a)} aria-pressed={form.locations.includes(a)}
-                className={`rounded-full border px-3 py-1.5 font-semibold transition-colors ${form.locations.includes(a) ? "border-brand-800 bg-brand-800 text-white" : "border-slate-300 text-slate-700 hover:border-brand-600"}`}>
-                {a}
-              </button>
+          <div className="space-y-4" role="group" aria-label="Service areas">
+            {Object.entries(REGION_LOCATIONS).map(([region, places]) => (
+              <div key={region}>
+                <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-500">{region}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {places.map((a) => (
+                    <button type="button" key={`${region}-${a}`} onClick={() => toggleArea(a)} aria-pressed={form.locations.includes(a)}
+                      className={`rounded-full border px-3 py-1.5 font-semibold transition-colors ${form.locations.includes(a) ? "border-brand-800 bg-brand-800 text-white" : "border-slate-300 text-slate-700 hover:border-brand-600"}`}>
+                      {a}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
+            {allAreas.filter((a) => !LOCATIONS.includes(a)).length > 0 && (
+              <div>
+                <h3 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-500">Other saved areas</h3>
+                <div className="flex flex-wrap gap-2">
+                  {allAreas.filter((a) => !LOCATIONS.includes(a)).map((a) => (
+                    <button type="button" key={a} onClick={() => toggleArea(a)} aria-pressed={form.locations.includes(a)}
+                      className={`rounded-full border px-3 py-1.5 font-semibold transition-colors ${form.locations.includes(a) ? "border-brand-800 bg-brand-800 text-white" : "border-slate-300 text-slate-700 hover:border-brand-600"}`}>{a}</button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex gap-2">
             <label htmlFor="custom-area" className="sr-only">Add another area</label>

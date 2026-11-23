@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import useCategories from "../hooks/useCategories";
 import { getErrorMessage } from "../services/api";
 import PasswordInput from "../components/PasswordInput";
-import { LOCATIONS } from "../constants";
+import { LOCATIONS, REGION_LOCATIONS } from "../constants";
 
 export default function Register() {
   const { user, register } = useAuth();
@@ -106,7 +106,7 @@ export default function Register() {
               <label htmlFor="location" className="label">Main area you work in</label>
               <select id="location" name="location" className="field" value={form.location} onChange={handleChange}>
                 <option value="">Choose an area</option>
-                {LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
+                {Object.entries(REGION_LOCATIONS).map(([region, places]) => <optgroup key={region} label={region}>{places.map((l) => <option key={`${region}-${l}`} value={l}>{l}</option>)}</optgroup>)}
               </select>
             </div>
           </>

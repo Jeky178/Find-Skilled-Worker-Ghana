@@ -4,7 +4,7 @@ import { MapPin, Search, Wrench } from "lucide-react";
 import useCategories from "../hooks/useCategories";
 import CategoryIcon from "../components/CategoryIcon";
 import FeaturedArtisans from "../components/FeaturedArtisans";
-import { LOCATIONS } from "../constants";
+import { LOCATIONS, REGION_LOCATIONS } from "../constants";
 
 const STEPS = [
   { title: "Search and compare", text: "Pick the trade and your area, then look through artisan profiles, prices and ratings." },
@@ -44,7 +44,7 @@ export default function Home() {
               <MapPin size={18} className="text-accent-400" aria-hidden="true" /> We are starting in Accra
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {LOCATIONS.slice(0, 7).map((l) => (
+              {["Madina", "Adenta", "Dome", "East Legon", "Tema", "Kasoa", "Achimota"].map((l) => (
                 <Link
                   key={l}
                   to={`/artisans?location=${encodeURIComponent(l)}`}
@@ -77,7 +77,7 @@ export default function Home() {
             <label htmlFor="location" className="label">Where?</label>
             <select id="location" className="field" value={location} onChange={(e) => setLocation(e.target.value)}>
               <option value="">All areas</option>
-              {LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
+              {Object.entries(REGION_LOCATIONS).map(([region, places]) => <optgroup key={region} label={region}>{places.map((l) => <option key={`${region}-${l}`} value={l}>{l}</option>)}</optgroup>)}
             </select>
           </div>
           <button type="submit" className="btn-accent self-end py-3 md:px-8">

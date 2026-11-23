@@ -275,8 +275,8 @@ class ProfileUpdate(BaseModel):
                 raise ValueError("Each service area must be between 2 and 80 characters")
             if name not in cleaned:
                 cleaned.append(name)
-        if len(cleaned) > 15:
-            raise ValueError("You can list at most 15 service areas")
+        if len(cleaned) > 50:
+            raise ValueError("You can list at most 50 service areas")
         return cleaned
 
     @model_validator(mode="after")

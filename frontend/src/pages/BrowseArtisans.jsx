@@ -4,7 +4,7 @@ import { Search, SearchX } from "lucide-react";
 import api, { getErrorMessage } from "../services/api";
 import useCategories from "../hooks/useCategories";
 import ArtisanCard from "../components/ArtisanCard";
-import { LOCATIONS } from "../constants";
+import { LOCATIONS, REGION_LOCATIONS } from "../constants";
 
 const SORTS = [
   ["recommended", "Recommended"], ["rating", "Highest rated"], ["experience", "Most experienced"],
@@ -93,7 +93,7 @@ export default function BrowseArtisans() {
             <label htmlFor="f-location" className="label">Area</label>
             <select id="f-location" className="field" value={f.location} onChange={(e) => setFilter({ location: e.target.value })}>
               <option value="">All areas</option>
-              {areas.map((l) => <option key={l} value={l}>{l}</option>)}
+              {Object.entries(REGION_LOCATIONS).map(([region, places]) => <optgroup key={region} label={region}>{places.map((l) => <option key={`${region}-${l}`} value={l}>{l}</option>)}</optgroup>)}{areas.filter((l) => !LOCATIONS.includes(l)).map((l) => <option key={l} value={l}>{l}</option>)}
             </select>
           </div>
           <div>
