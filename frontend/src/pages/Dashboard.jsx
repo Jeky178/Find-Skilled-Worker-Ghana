@@ -14,8 +14,10 @@ const VERIFY_LABEL = {
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -142,12 +144,33 @@ export default function Dashboard() {
                     value={deletePassword} onChange={(event) => setDeletePassword(event.target.value)}
                     className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2" />
                 </div>
-                <div>
-                  <label htmlFor="delete-account-confirmation" className="mb-1 block text-sm font-semibold text-slate-800">Type DELETE to confirm</label>
-                  <input id="delete-account-confirmation" type="text" required value={deleteConfirmation}
-                    onChange={(event) => setDeleteConfirmation(event.target.value)}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2" />
-                </div>
+
+<div>
+  <label htmlFor="delete-account-password" className="mb-1 block text-sm font-semibold text-slate-800">
+    Current password
+  </label>
+
+  <div className="relative">
+    <input
+      id="delete-account-password"
+      type={showDeletePassword ? "text" : "password"}
+      autoComplete="current-password"
+      required
+      value={deletePassword}
+      onChange={(event) => setDeletePassword(event.target.value)}
+      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 pr-12"
+    />
+
+    <button
+      type="button"
+      onClick={() => setShowDeletePassword((previous) => !previous)}
+      className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-slate-800"
+      aria-label={showDeletePassword ? "Hide password" : "Show password"}
+    >
+      {showDeletePassword ? "Hide" : "Show"}
+    </button>
+  </div>
+</div>
                 {deleteError && <p role="alert" className="text-sm font-medium text-red-700">{deleteError}</p>}
                 <div className="flex flex-wrap gap-2">
                   <button type="submit" disabled={deletingAccount || !deletePassword || deleteConfirmation !== "DELETE"}
