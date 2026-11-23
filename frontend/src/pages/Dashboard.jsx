@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import api from "../services/api";
+import { Link, useNavigate } from "react-router-dom";
+import api, { getErrorMessage } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
 const ROLE_LABEL = { customer: "Customer", artisan: "Artisan", admin: "Administrator" };
@@ -12,7 +12,13 @@ const VERIFY_LABEL = {
 };
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [mine, setMine] = useState(null);
   const [stats, setStats] = useState(null);
 
@@ -27,6 +33,26 @@ export default function Dashboard() {
   }, [user.role]);
 
   const profile = mine || user.artisan_profile;
+
+  const submitAccountDeletion = async (event) => {
+    event.preventDefault();
+    setDeleteError("");
+    if (deleteConfirmation !== "DELETE") {
+      setDeleteError('Type DELETE exactly to confirm permanent account deletion.');
+      return;
+    }
+    setDeletingAccount(true);
+    try {
+      await api.delete("/api/auth/account", {
+        data: { current_password: deletePassword, confirmation: deleteConfirmation },
+      });
+      logout();
+      navigate("/", { replace: true });
+    } catch (error) {
+      setDeleteError(getErrorMessage(error));
+      setDeletingAccount(false);
+    }
+  };
 
   return (
     <section className="mx-auto max-w-4xl px-4 py-12">
@@ -95,6 +121,50 @@ export default function Dashboard() {
             <div className="flex justify-between"><dt className="text-slate-600">Phone</dt><dd className="font-semibold">{user.phone ? `+${user.phone}` : "Not added"}</dd></div>
           </dl>
         </div>
+        {user.role !== "admin" && (
+          <div className="rounded-2xl border border-red-200 bg-red-50/50 p-6 md:col-span-2">
+            <h2 className="text-xl font-bold text-red-800">Delete account</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-700">
+              If you no longer want to use Find Skilled Worker Ghana, you can permanently delete your account.
+              Your public artisan listing and profile media will be removed. Historical job and payment records
+              may be retained in anonymised form for record-keeping.
+            </p>
+            {!showDeleteAccount ? (
+              <button type="button" className="mt-4 rounded-lg border border-red-300 px-4 py-2 font-semibold text-red-700 hover:bg-red-100"
+                onClick={() => { setShowDeleteAccount(true); setDeleteError(""); }}>
+                Delete my account
+              </button>
+            ) : (
+              <form className="mt-4 max-w-xl space-y-3" onSubmit={submitAccountDeletion}>
+                <div>
+                  <label htmlFor="delete-account-password" className="mb-1 block text-sm font-semibold text-slate-800">Current password</label>
+                  <input id="delete-account-password" type="password" autoComplete="current-password" required
+                    value={deletePassword} onChange={(event) => setDeletePassword(event.target.value)}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2" />
+                </div>
+                <div>
+                  <label htmlFor="delete-account-confirmation" className="mb-1 block text-sm font-semibold text-slate-800">Type DELETE to confirm</label>
+                  <input id="delete-account-confirmation" type="text" required value={deleteConfirmation}
+                    onChange={(event) => setDeleteConfirmation(event.target.value)}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2" />
+                </div>
+                {deleteError && <p role="alert" className="text-sm font-medium text-red-700">{deleteError}</p>}
+                <div className="flex flex-wrap gap-2">
+                  <button type="submit" disabled={deletingAccount || !deletePassword || deleteConfirmation !== "DELETE"}
+                    className="rounded-lg bg-red-700 px-4 py-2 font-semibold text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50">
+                    {deletingAccount ? "Deleting account…" : "Permanently delete account"}
+                  </button>
+                  <button type="button" disabled={deletingAccount}
+                    onClick={() => { setShowDeleteAccount(false); setDeletePassword(""); setDeleteConfirmation(""); setDeleteError(""); }}
+                    className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50">
+                    Cancel
+                  </button>
+                </div>
+                <p className="text-xs text-slate-600">This action cannot be undone. You will be signed out immediately.</p>
+              </form>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

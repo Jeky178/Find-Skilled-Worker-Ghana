@@ -104,6 +104,18 @@ class TokenOut(BaseModel):
     user: MeOut
 
 
+class DeleteAccountRequest(BaseModel):
+    current_password: str = Field(min_length=1, max_length=72)
+    confirmation: str = Field(min_length=1, max_length=10)
+
+    @field_validator("confirmation")
+    @classmethod
+    def confirm_permanent_deletion(cls, value: str) -> str:
+        if value != "DELETE":
+            raise ValueError('Type DELETE to confirm account deletion')
+        return value
+
+
 class ChangePasswordRequest(BaseModel):
     current_password: str = Field(max_length=72)
     new_password: str = Field(min_length=8, max_length=72)
