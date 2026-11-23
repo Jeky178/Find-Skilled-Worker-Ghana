@@ -22,8 +22,16 @@ export const REGION_LOCATIONS = {
   "Western North": ["Sefwi Wiawso", "Bibiani", "Enchi", "Juaboso", "Bodi", "Sefwi Bekwai", "Akontombra", "Dadieso", "Asawinso"]
 };
 
-export const REGIONS = Object.keys(REGION_LOCATIONS);
-export const LOCATIONS = [...new Set(Object.values(REGION_LOCATIONS).flat())].sort((a, b) => a.localeCompare(b));
+// Sort locations alphabetically within each region
+Object.values(REGION_LOCATIONS).forEach((locations) => {
+  locations.sort((a, b) => a.localeCompare(b));
+});
+
+// Sort regions and all locations alphabetically
+export const REGIONS = Object.keys(REGION_LOCATIONS).sort((a, b) => a.localeCompare(b));
+
+export const LOCATIONS = [...new Set(Object.values(REGION_LOCATIONS).flat())]
+  .sort((a, b) => a.localeCompare(b));
 
 export const CONTACT = {
   email: import.meta.env.VITE_CONTACT_EMAIL || "",
