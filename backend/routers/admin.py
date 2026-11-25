@@ -4,7 +4,7 @@ import re
 from datetime import datetime, time, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session, joinedload
 
@@ -23,7 +23,7 @@ from schemas_admin import (
 from services.artisan_views import featured_active
 from services.audit import log_action
 from services.notifications import notify
-from services.uploads import private_path
+from services.uploads import read_private_image
 
 router = APIRouter(prefix="/api/admin", tags=["Administration"], dependencies=[Depends(require_admin)])
 
@@ -185,12 +185,21 @@ def list_verifications(status_filter: VerificationStatus | None = Query(None, al
 def verification_document(vid: int, kind: str = Query("id", pattern="^(id|certificate)$"), admin: User = Depends(require_admin), db: Session = Depends(get_db)):
     v = db.get(Verification, vid)
     key = None if v is None else (v.document_path if kind == "id" else v.trade_certificate_path)
-    path = private_path(key)
-    if path is None:
+    if v is None or not key:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Document not found")
+    image_bytes = read_private_image(key)
+    if image_bytes is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            "This document is unavailable. The artisan may need to upload it again.",
+        )
     log_action(db, admin, "view_verification_document", "verification", vid, kind)
     db.commit()
-    return FileResponse(path, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
+    return Response(
+        content=image_bytes,
+        media_type="image/jpeg",
+        headers={"Cache-Control": "no-store", "Pragma": "no-cache"},
+    )
 
 
 @router.post("/verifications/{vid}/decision", response_model=VerificationAdminOut)

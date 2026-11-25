@@ -73,8 +73,8 @@ def test_profile_photo_upload_is_validated_and_reencoded(client):
     url = r.json()["profile_image"]
     assert url.startswith("/uploads/profiles/") and url.endswith(".jpg")
     stored = Path(os.environ["UPLOAD_DIR"], "public", url.removeprefix("/uploads/"))
-    img = Image.open(stored)
-    assert img.format == "JPEG" and max(img.size) <= 1600                   # re-encoded + resized
+    with Image.open(stored) as img:
+        assert img.format == "JPEG" and max(img.size) <= 1600              # re-encoded + resized
     assert client.get(url).status_code == 200                               # served publicly
     # replacing the photo deletes the old file
     r2 = upload(client, "/api/artisan/me/photo", h, png_bytes())
